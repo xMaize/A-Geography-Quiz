@@ -3,12 +3,16 @@ package edu.uga.cs.ageographyquiz;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.QUESTIONS_COLUMN_QUESTION_ID;
+import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.TABLE_QUESTIONS;
 
 public class GeographyQuizData {
 
@@ -124,7 +128,7 @@ public class GeographyQuizData {
         values.put(GeographyQuizDBHelper.QUESTIONS_COLUMN_COUNTRY, question.getCountry());
         values.put(GeographyQuizDBHelper.QUESTIONS_COLUMN_CONTINENT, question.getContinent());
 
-        long id = db.insert(GeographyQuizDBHelper.TABLE_QUESTIONS, null, values);
+        long id = db.insert(TABLE_QUESTIONS, null, values);
 
         question.setId(id);
 
@@ -139,7 +143,7 @@ public class GeographyQuizData {
         values.put(GeographyQuizDBHelper.QUIZZES_COLUMN_DATE, quiz.getDate());
         values.put(GeographyQuizDBHelper.QUIZZES_COLUMN_CORRECT, quiz.getCorrect());
 
-        long id = db.insert(GeographyQuizDBHelper.TABLE_QUESTIONS, null, values);
+        long id = db.insert(TABLE_QUESTIONS, null, values);
 
         quiz.setId(id);
 
@@ -152,11 +156,19 @@ public class GeographyQuizData {
         ContentValues values = new ContentValues();
         values.put(GeographyQuizDBHelper.QUIZZES_COLUMN_DATE, answer.getAnswer());
 
-        db.insert(GeographyQuizDBHelper.TABLE_QUESTIONS, null, values);
+        db.insert(TABLE_QUESTIONS, null, values);
 
         Log.d(DEBUG_TAG, "Stored a new answer: " + String.valueOf(answer.getAnswer()));
 
         return answer;
+    }
+
+    public long numQuestions(){
+
+        long count = DatabaseUtils.queryNumEntries(db, TABLE_QUESTIONS);
+
+        return count;
+
     }
 
 }
