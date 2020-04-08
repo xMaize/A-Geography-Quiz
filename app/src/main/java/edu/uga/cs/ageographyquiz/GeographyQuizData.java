@@ -11,6 +11,8 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
+import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.QUESTIONS_COLUMN_CONTINENT;
+import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.QUESTIONS_COLUMN_COUNTRY;
 import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.QUESTIONS_COLUMN_QUESTION_ID;
 import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.TABLE_QUESTIONS;
 
@@ -86,6 +88,40 @@ public class GeographyQuizData {
         }
 
         return quizzes;
+    }
+
+    public List<Question> retrieveQuestions(){
+        ArrayList<Question> questions = new ArrayList<>();
+
+        int[] questionNums = new int[6];
+        boolean allUnique = false;
+
+        for(int i = 0; i < questionNums.length; i++){
+            if(i == 0){
+                questionNums[i] = (int) (Math.random() * 195) + 1;
+            }
+            else{
+                while(allUnique == false){
+                    questionNums[i] = (int) (Math.random() * 195) + 1;
+                    for(int j = i - 1; j >= 0; j--){
+                        if(questionNums[i] == questionNums[j]){
+                            allUnique = true;
+                        }
+                    }
+                }
+            }
+            allUnique = false;
+        }
+
+        for(int i = 0; i < questionNums.length; i++){
+            String query = "SELECT * FROM " + TABLE_QUESTIONS + " WHERE " + QUESTIONS_COLUMN_QUESTION_ID + " = " + i;
+            Cursor cursor = db.rawQuery(query, null);
+            Question question = new Question(cursor.getString(cursor.getColumnIndex(QUESTIONS_COLUMN_COUNTRY)), cursor.getString(cursor.getColumnIndex(QUESTIONS_COLUMN_CONTINENT)));
+            question.setId(cursor.getLong(cursor.getColumnIndex(QUESTIONS_COLUMN_QUESTION_ID)));
+            questions.add(question);
+        }
+
+        return questions;
     }
 
     public List<Answer> retrieveAllAnswers(){
