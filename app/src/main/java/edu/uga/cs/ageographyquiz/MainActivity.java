@@ -15,6 +15,7 @@ import com.opencsv.CSVReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,7 +39,19 @@ public class MainActivity extends AppCompatActivity {
         start.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+                geographyQuizData.open();
+                List<Question> questions = geographyQuizData.retrieveQuestions();
+
+                String[] countries = new String[6];
+                String[] continents = new String[6];
+
+                for(int i = 0; i < questions.size(); i++){
+                    countries[i] = questions.get(i).getCountry();
+                    continents[i] = questions.get(i).getContinent();
+                }
                 Intent intent = new Intent(v.getContext(), QuizActivity.class);
+                intent.putExtra("questions", countries);
+                intent.putExtra("answers", continents);
                 v.getContext().startActivity(intent);
             }
         });

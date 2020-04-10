@@ -104,8 +104,12 @@ public class GeographyQuizData {
                 while(allUnique == false){
                     questionNums[i] = (int) (Math.random() * 195) + 1;
                     for(int j = i - 1; j >= 0; j--){
-                        if(questionNums[i] == questionNums[j]){
+                        if(questionNums[i] != questionNums[j]){
                             allUnique = true;
+                        }
+                        else{
+                            allUnique = false;
+                            break;
                         }
                     }
                 }
@@ -113,12 +117,24 @@ public class GeographyQuizData {
             allUnique = false;
         }
 
+        Log.d(DEBUG_TAG, questionNums[0] + " " + questionNums[1] + " " + questionNums[2] + " " + questionNums[3] + " " + questionNums[4] + " " + questionNums[5]);
+
         for(int i = 0; i < questionNums.length; i++){
-            String query = "SELECT * FROM " + TABLE_QUESTIONS + " WHERE " + QUESTIONS_COLUMN_QUESTION_ID + " = " + i;
+            String query = "SELECT * FROM " + TABLE_QUESTIONS + " WHERE " + QUESTIONS_COLUMN_QUESTION_ID + " = " + questionNums[i];
             Cursor cursor = db.rawQuery(query, null);
-            Question question = new Question(cursor.getString(cursor.getColumnIndex(QUESTIONS_COLUMN_COUNTRY)), cursor.getString(cursor.getColumnIndex(QUESTIONS_COLUMN_CONTINENT)));
-            question.setId(cursor.getLong(cursor.getColumnIndex(QUESTIONS_COLUMN_QUESTION_ID)));
-            questions.add(question);
+
+            if(cursor.getCount() > 0){
+                while(cursor.moveToNext()){
+                    long id = cursor.getLong(cursor.getColumnIndex(QUESTIONS_COLUMN_QUESTION_ID));
+                    String country = cursor.getString(cursor.getColumnIndex(QUESTIONS_COLUMN_COUNTRY));
+                    String continent = cursor.getString(cursor.getColumnIndex(QUESTIONS_COLUMN_CONTINENT));
+
+                    Question question = new Question(country, continent);
+                    question.setId(id);
+                    questions.add(question);
+                    Log.d(DEBUG_TAG, "Retrieved Question: " + question);
+                }
+            }
         }
 
         return questions;
