@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.opencsv.CSVReader;
 
@@ -17,28 +18,31 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class ResultActivity extends AppCompatActivity {
 
-    private static final String DEBUG_TAG = "MainActivity";
-    private GeographyQuizData geographyQuizData = null;
+    private static final String DEBUG_TAG = "ResultActivity";
+
+    private TextView result;
+    private Button restart;
+    private Button history;
+    private long numCorrect;
     private ArrayList<Question> questionList;
-    private Button start;
-    private Button previous;
+    private GeographyQuizData geographyQuizData = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        Log.d(DEBUG_TAG, "MainActivity.onCreate()");
-
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
+        setContentView(R.layout.activity_result);
+        Intent intent = getIntent();
+        result = findViewById(R.id.resultmessage);
+        restart = findViewById(R.id.restart);
+        history = findViewById(R.id.history);
+        numCorrect = intent.getLongExtra("numCorrect", 0);
+        result.setText("Your score is " + numCorrect + " out of 6.");
         geographyQuizData = new GeographyQuizData(this);
-        new QuestionDBReaderTask().execute();
 
-        start = findViewById(R.id.start);
-        previous = findViewById(R.id.previous);
-        start.setOnClickListener(new View.OnClickListener(){
+        restart.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 geographyQuizData.open();
@@ -57,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 v.getContext().startActivity(intent);
             }
         });
-        previous.setOnClickListener(new View.OnClickListener(){
+        history.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 Intent intent = new Intent(v.getContext(), ReviewQuizzesActivity.class);
@@ -66,49 +70,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private class QuestionDBReaderTask extends AsyncTask<Void, Void, ArrayList<Question>>{
-
-        @Override
-        protected  ArrayList<Question> doInBackground(Void... params){
-            try {
-                geographyQuizData.open();
-                questionList = new ArrayList<Question>();
-
-                Resources res = getResources();
-                InputStream in_s = res.openRawResource(R.raw.country_continent);
-
-                CSVReader reader = new CSVReader(new InputStreamReader(in_s));
-                String[] nextLine;
-
-                while ((nextLine = reader.readNext()) != null) {
-
-                    Question question = new Question();
-                    for(int i = 0; i < nextLine.length; i++){
-                        if(i == 0) question.setCountry(nextLine[i]);
-                        if(i == 1) question.setContinent(nextLine[i]);
-                    }
-                    questionList.add(question);
-                }
-            }
-            catch (Exception e){
-                Log.e(DEBUG_TAG, e.toString());
-            }
-
-            return questionList;
-
-        }
-
-
-        @Override
-        protected void onPostExecute(ArrayList<Question> questionArrayList) {
-            super.onPostExecute(questionArrayList);
-            if(geographyQuizData.numQuestions() < 195) {
-                for (int i = 0; i < questionArrayList.size(); i++) {
-                    geographyQuizData.storeQuestion(questionArrayList.get(i));
-                }
-            }
-        }
-    }
 
     @Override
     protected void onResume(){
@@ -127,5 +88,4 @@ public class MainActivity extends AppCompatActivity {
             geographyQuizData.close();
         super.onPause();
     }
-
 }

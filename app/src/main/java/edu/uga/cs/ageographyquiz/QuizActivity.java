@@ -6,12 +6,16 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 import androidx.fragment.app.FragmentManager;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import java.util.Calendar;
+import java.util.Date;
+
 
 public class QuizActivity extends AppCompatActivity {
 
@@ -20,6 +24,10 @@ public class QuizActivity extends AppCompatActivity {
     SectionsPagerAdapter mSectionsPagerAdapter;
     public static String[] questions;
     public static String[] answers;
+    private static String[] userAnswers;
+    public long numCorrect;
+    private GeographyQuizData geographyQuizData = null;
+    public boolean[] isAnswered;
     public static final String[] continents = {"Asia", "Africa", "Europe", "South America"
             , "North America", "Oceania", "Antartica"};
 
@@ -30,9 +38,15 @@ public class QuizActivity extends AppCompatActivity {
         Intent intent = getIntent();
         questions = intent.getStringArrayExtra("questions");
         answers = intent.getStringArrayExtra("answers");
+        userAnswers = new String[6];
+        isAnswered = new boolean[6];
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), questions.length);
         mViewPager = findViewById(R.id.Swiper);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+        geographyQuizData = new GeographyQuizData(this);
+        geographyQuizData.open();
+        final Date currentTime = Calendar.getInstance().getTime();
+        Log.d(DEBUG_TAG, currentTime.toString());
 
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -50,17 +64,28 @@ public class QuizActivity extends AppCompatActivity {
                     View view = fragment.getView();
                     RadioGroup rg = view.findViewById(R.id.choices);
                     RadioButton selected = view.findViewById(rg.getCheckedRadioButtonId());
-//                    Intent intent = getIntent();
-//                    int currentQuestion = fragment.getArguments().getInt("Current Question") - 1;
-//                    Log.d(DEBUG_TAG, Integer.toString(currentQuestion));
-//                    String[] questions = intent.getStringArrayExtra("questions");
-//                    Log.d(DEBUG_TAG, questions[currentQuestion]);
+                    //Intent intent = getIntent();
+                    int currentQuestion = fragment.getArguments().getInt("Current Question") - 1;
+                    Log.d(DEBUG_TAG, Integer.toString(currentQuestion));
                     if (selected != null) Log.d(DEBUG_TAG, selected.toString());
-                    if (selected != null) Log.d(DEBUG_TAG, selected.getText().toString());
+                    if (selected != null) {
+                        //Log.d(DEBUG_TAG, selected.getText().toString());
+                        userAnswers[currentQuestion] = selected.getText().toString().substring(3);
+                        if (userAnswers[currentQuestion].equals(answers[currentQuestion]) && isAnswered[currentQuestion]==false) {
+                            isAnswered[currentQuestion] = true;
+                            numCorrect ++;
+                        }
+                        Log.d(DEBUG_TAG, Long.toString(numCorrect));
+                    }
 
                     int lastIndex = mSectionsPagerAdapter.getCount() - 1;
                     if(lastIndex == fragment.getArguments().getInt("Current Question") - 1){
-                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                        Quiz quiz = new Quiz(currentTime.toString(), numCorrect);
+                        Log.d(DEBUG_TAG, Boolean.toString(quiz==null));
+                        new QuizDBWriterTask().execute(quiz);
+                        Intent intent = new Intent(view.getContext(), ResultActivity.class);
+                        intent.putExtra("numCorrect", numCorrect);
+                        startActivity(intent);
                     }
                 }
             }
@@ -97,9 +122,9 @@ public class QuizActivity extends AppCompatActivity {
             }while(!isUnique);
         }
 
-        r1.setText(answerChoices[0]);
-        r2.setText(answerChoices[1]);
-        r3.setText(answerChoices[2]);
+        r1.setText("A. " + answerChoices[0]);
+        r2.setText("B. " + answerChoices[1]);
+        r3.setText("C. " + answerChoices[2]);
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter{
@@ -124,6 +149,39 @@ public class QuizActivity extends AppCompatActivity {
             return String.valueOf("Question" + questionNum);
         }
     }
+    private class QuizDBWriterTask extends AsyncTask<Quiz, Void, Quiz> {
+
+        @Override
+        protected Quiz doInBackground(Quiz... quiz) {
+            Log.d(DEBUG_TAG, Boolean.toString(quiz[0]==null));
+            geographyQuizData.storeQuiz(quiz[0]);
+            return quiz[0];
+        }
+
+        @Override
+        protected void onPostExecute(Quiz quiz) {
+            super.onPostExecute(quiz);
+
+
+            Log.d(DEBUG_TAG, "quiz saved: " + quiz.toString());
+        }
+    }
+    @Override
+    protected void onResume() {
+        Log.d( DEBUG_TAG, "ReviewQuizzesActivity.onResume()" );
+        if(geographyQuizData!= null )
+            geographyQuizData.open();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d( DEBUG_TAG, "ReviewQuizzesActivity.onPause()" );
+        if(geographyQuizData != null )
+            geographyQuizData.close();
+        super.onPause();
+    }
+
 }
 
 

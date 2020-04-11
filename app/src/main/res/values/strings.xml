@@ -3,4 +3,5 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="instructions">Hello, this is a geography quiz in which you will be given 6 countries and will be required to select the continent that it belongs in. Good Luck!</string>
 </resources>

@@ -15,6 +15,7 @@ import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.QUESTIONS_COLUMN_C
 import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.QUESTIONS_COLUMN_COUNTRY;
 import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.QUESTIONS_COLUMN_QUESTION_ID;
 import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.TABLE_QUESTIONS;
+import static edu.uga.cs.ageographyquiz.GeographyQuizDBHelper.TABLE_QUIZZES;
 
 public class GeographyQuizData {
 
@@ -194,8 +195,8 @@ public class GeographyQuizData {
         ContentValues values = new ContentValues();
         values.put(GeographyQuizDBHelper.QUIZZES_COLUMN_DATE, quiz.getDate());
         values.put(GeographyQuizDBHelper.QUIZZES_COLUMN_CORRECT, quiz.getCorrect());
-
-        long id = db.insert(TABLE_QUESTIONS, null, values);
+        Log.d(DEBUG_TAG, Boolean.toString(values==null));
+        long id = db.insert(TABLE_QUIZZES, null, values);
 
         quiz.setId(id);
 
