@@ -11,6 +11,11 @@ import android.util.Log;
 
 import java.util.List;
 
+/**
+ * This is an activity that lists the previous quizzes taken
+ * and their results
+ * The quizzes are listed as a RecyclerView
+ */
 public class ReviewQuizzesActivity extends AppCompatActivity {
 
     public static final String DEBUG_TAG = "ReviewQuizzesActivity";
@@ -22,6 +27,10 @@ public class ReviewQuizzesActivity extends AppCompatActivity {
     private GeographyQuizData geographyQuizData = null;
     private List<Quiz> quizList;
 
+    /**
+     * Overridden method for when a ReviewQuizzesActivity is called
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,17 +38,25 @@ public class ReviewQuizzesActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
 
+        //we use a linear layout for the recycler view
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager( layoutManager );
 
+        //We create a geographyQuizData since we need so save quizzes to the database
         geographyQuizData = new GeographyQuizData( this );
 
+        //Retrieve the quizzes in an asynchronous way
         new QuizDBReaderTask().execute();
     }
+
+    /**
+     * An AsyncTask class that runs in the background that
+     * reads from the database
+     */
     private class QuizDBReaderTask extends AsyncTask<Void, Void, List<Quiz>> {
 
         // This method will run as a background process to read from db.
-        // It returns a list of retrieved JobLead objects.
+        // It returns a list of retrieved quiz objects.
         // It will be automatically invoked by Android, when we call the execute method
         // in the onCreate callback (the job leads review activity is started).
         @Override
@@ -55,7 +72,6 @@ public class ReviewQuizzesActivity extends AppCompatActivity {
         // This method will be automatically called by Android once the db reading
         // background process is finished.  It will then create and set an adapter to provide
         // values for the RecyclerView.
-        // onPostExecute is like the notify method in an asynchronous method call discussed in class.
         @Override
         protected void onPostExecute( List<Quiz> quizList ) {
             super.onPostExecute(quizList);
@@ -63,6 +79,8 @@ public class ReviewQuizzesActivity extends AppCompatActivity {
             recyclerView.setAdapter(recyclerAdapter);
         }
     }
+    //The overrides for onResume and onPause are here to ensure that the app still continues to run even
+    //after it may be interrupted by another app
     @Override
     protected void onResume() {
         Log.d( DEBUG_TAG, "ReviewQuizzesActivity.onResume()" );

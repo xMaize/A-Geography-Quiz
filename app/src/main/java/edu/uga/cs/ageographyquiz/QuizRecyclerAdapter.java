@@ -10,6 +10,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+/**
+ * This is an adapter class for the RecyclerView to show all of the previous quizzes
+ */
 public class QuizRecyclerAdapter extends RecyclerView.Adapter<QuizRecyclerAdapter.QuizHolder> {
 
     public static final String DEBUG_TAG = "QuizRecyclerAdapter";
@@ -20,7 +23,10 @@ public class QuizRecyclerAdapter extends RecyclerView.Adapter<QuizRecyclerAdapte
         this.quizList = quizList;
     }
 
-    // The adapter must have a ViewHolder class to "hold" one item to show.
+    /**
+     * The adapter must have a ViewHolder class to "hold" one item to show.
+     * The holder displays the quizId, date, and number of correct answers
+     */
     class QuizHolder extends RecyclerView.ViewHolder {
 
         TextView quizId;
@@ -36,6 +42,12 @@ public class QuizRecyclerAdapter extends RecyclerView.Adapter<QuizRecyclerAdapte
         }
     }
 
+    /**
+     * Creates a QuizHolder to hold our quiz data
+     * @param parent
+     * @param viewType
+     * @return QuizHolder a QuizHolder
+     */
     @Override
     public QuizHolder onCreateViewHolder(ViewGroup parent, int viewType ) {
 
@@ -43,8 +55,12 @@ public class QuizRecyclerAdapter extends RecyclerView.Adapter<QuizRecyclerAdapte
         return new QuizHolder(view);
     }
 
-    // This method fills in the values of a holder to show a JobLead.
-    // The position parameter indicates the position on the list of jobs list.
+    /**
+     * This method fills in the values of a holder to show a quiz.
+     * The position parameter indicates the position on the list of quiz list.
+     * @param holder
+     * @param position
+     */
     @Override
     public void onBindViewHolder(QuizHolder holder, int position ) {
         Quiz quiz = quizList.get( position );

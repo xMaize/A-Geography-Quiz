@@ -16,7 +16,9 @@ import android.widget.TextView;
 import java.util.Calendar;
 import java.util.Date;
 
-
+/**
+ * This class is an activity that creates a new quiz
+ */
 public class QuizActivity extends AppCompatActivity {
 
     private static final String DEBUG_TAG = "QuizActivity";
@@ -31,10 +33,15 @@ public class QuizActivity extends AppCompatActivity {
     public static final String[] continents = {"Asia", "Africa", "Europe", "South America"
             , "North America", "Oceania", "Antartica"};
 
+    /**
+     * Overridden method for when a QuizActivity is called
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz);
+        //On creating a new quiz, we must take the information from the intent and save them as local variables to use in our quiz
         Intent intent = getIntent();
         questions = intent.getStringArrayExtra("questions");
         answers = intent.getStringArrayExtra("answers");
@@ -48,6 +55,7 @@ public class QuizActivity extends AppCompatActivity {
         final Date currentTime = Calendar.getInstance().getTime();
         Log.d(DEBUG_TAG, currentTime.toString());
 
+        //We are using a view pager to allow swiping after each question so we override all of the methods
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -57,19 +65,25 @@ public class QuizActivity extends AppCompatActivity {
             public void onPageSelected(int position) {
             }
 
+            /**
+             * A method where we we save answer choices and checking if they are correct
+             * @param state
+             */
             @Override
             public void onPageScrollStateChanged(int state) {
+                //Inside this method is where we are retaining the values of the answer choices for each
+                //question as well as checking if they are correct
                 if(state == 1) {
                     Fragment fragment = getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.Swiper + ":" + mViewPager.getCurrentItem());
                     View view = fragment.getView();
                     RadioGroup rg = view.findViewById(R.id.choices);
                     RadioButton selected = view.findViewById(rg.getCheckedRadioButtonId());
-                    //Intent intent = getIntent();
                     int currentQuestion = fragment.getArguments().getInt("Current Question") - 1;
                     Log.d(DEBUG_TAG, Integer.toString(currentQuestion));
                     if (selected != null) Log.d(DEBUG_TAG, selected.toString());
+
+                    //as long as the user inputs an answer choice, it will check if it is correct
                     if (selected != null) {
-                        //Log.d(DEBUG_TAG, selected.getText().toString());
                         userAnswers[currentQuestion] = selected.getText().toString().substring(3);
                         if (userAnswers[currentQuestion].equals(answers[currentQuestion]) && isAnswered[currentQuestion]==false) {
                             isAnswered[currentQuestion] = true;
@@ -78,6 +92,8 @@ public class QuizActivity extends AppCompatActivity {
                         Log.d(DEBUG_TAG, Long.toString(numCorrect));
                     }
 
+                    //Here is where we manage if the user is on the last question and swipes to the left
+                    //in which they will be taken to a results screen taking the date as well as score
                     int lastIndex = mSectionsPagerAdapter.getCount() - 1;
                     if(lastIndex == fragment.getArguments().getInt("Current Question") - 1){
                         Quiz quiz = new Quiz(currentTime.toString(), numCorrect);
@@ -85,6 +101,7 @@ public class QuizActivity extends AppCompatActivity {
                         new QuizDBWriterTask().execute(quiz);
                         Intent intent = new Intent(view.getContext(), ResultActivity.class);
                         intent.putExtra("numCorrect", numCorrect);
+                        intent.putExtra("date", currentTime.toString());
                         startActivity(intent);
                     }
                 }
@@ -96,7 +113,19 @@ public class QuizActivity extends AppCompatActivity {
         quizFragment.setArguments(getIntent().getExtras());
     }
 
+    /**
+     * A method where questions and answers are loaded and ensures
+     * they are random and not duplicates
+     * @param textView A TextView that contains the question
+     * @param question The question going into the TextView
+     * @param answer The correct answer choice
+     * @param r1 Radiobutton answer choice 1
+     * @param r2 Radiobutton answer choice 1
+     * @param r3 Radiobutton answer choice 1
+     */
     public void loadView(TextView textView, String question, String answer, RadioButton r1, RadioButton r2, RadioButton r3){
+        //This method is where the questions and answer choices are loaded. It will ensure that the answers
+        //are places randomly and are not duplicates of each other.
         textView.setText(question);
 
         boolean isUnique = true;
@@ -127,7 +156,11 @@ public class QuizActivity extends AppCompatActivity {
         r3.setText("C. " + answerChoices[2]);
     }
 
+    /**
+     * A class that helps utilize the ViewPager
+     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter{
+        //this class helps us use the view pager
         private final int mSize;
 
         public SectionsPagerAdapter(FragmentManager fm, int size){
@@ -149,6 +182,10 @@ public class QuizActivity extends AppCompatActivity {
             return String.valueOf("Question" + questionNum);
         }
     }
+
+    /**
+     * This is an AsyncTask class to perform DB writing of a new quiz
+     */
     private class QuizDBWriterTask extends AsyncTask<Quiz, Void, Quiz> {
 
         @Override
@@ -161,14 +198,14 @@ public class QuizActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Quiz quiz) {
             super.onPostExecute(quiz);
-
-
             Log.d(DEBUG_TAG, "quiz saved: " + quiz.toString());
         }
     }
+    //Just like other classes, these methods are overridden to ensure
+    //the app saves answers if it is interrupted
     @Override
     protected void onResume() {
-        Log.d( DEBUG_TAG, "ReviewQuizzesActivity.onResume()" );
+        Log.d( DEBUG_TAG, "QuizActivity.onResume()" );
         if(geographyQuizData!= null )
             geographyQuizData.open();
         super.onResume();
@@ -176,7 +213,7 @@ public class QuizActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        Log.d( DEBUG_TAG, "ReviewQuizzesActivity.onPause()" );
+        Log.d( DEBUG_TAG, "QuizActivity.onPause()" );
         if(geographyQuizData != null )
             geographyQuizData.close();
         super.onPause();
